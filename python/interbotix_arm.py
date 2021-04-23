@@ -94,6 +94,7 @@ def itemWriteMultiple(ids, address, data, length):
 ### @param length - size of register in bytes
 ### @return state - variable to store the requested data
 ### @return <bool> - true if data was successfully retrieved; false otherwise
+### @details - DynamixelSDK uses 2's complement so we need to check to see if 'state' should be negative (hex numbers)
 def itemRead(id, address, length):
     if length == 1:
         state, dxl_comm_result, dxl_error = packetHandler.read1ByteTxRx(portHandler, id, address)
@@ -162,6 +163,7 @@ def syncWrite(groupSyncWrite, ids, commands, length):
 ### @param length - size of register in bytes
 ### @return states - list to store the requested data
 ### @return <bool> - true if data was successfully retrieved; false otherwise
+### @details - DynamixelSDK uses 2's complement so we need to check to see if 'state' should be negative (hex numbers)
 def syncRead(groupSyncRead, ids, address, length):
     groupSyncRead.clearParam()
     for id in ids:
@@ -178,10 +180,10 @@ def syncRead(groupSyncRead, ids, address, length):
     states = []
     for id in ids:
         state = groupSyncRead.getData(id, address, length)
-        if length == 4 and state > 0x7fffffff:
-            state = state - 4294967296
-        elif length == 2 and state > 0x7fff:
+        if length == 2 and state > 0x7fff:
             state = state - 65536
+        elif length == 4 and state > 0x7fffffff:
+            state = state - 4294967296
         states.append(state)
     return states, True
 
